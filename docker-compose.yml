@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: ecogestor-db
+    environment:
+      POSTGRES_USER: ecogestor
+      POSTGRES_PASSWORD: ecogestor
+      POSTGRES_DB: ecogestor
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - ecogestor-network
+
+  backend:
+    build:
+      context: ./backend
+    container_name: ecogestor-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ecogestor
+      SPRING_DATASOURCE_USERNAME: ecogestor
+      SPRING_DATASOURCE_PASSWORD: ecogestor
+    networks:
+      - ecogestor-network
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: ecogestor-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - ecogestor-network
+
+volumes:
+  postgres-data:
+
+networks:
+  ecogestor-network:
+    driver: bridge
