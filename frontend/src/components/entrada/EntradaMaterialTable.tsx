@@ -8,7 +8,14 @@ interface EntradaMaterialTableProps {
 
 export function EntradaMaterialTable({ data, loading }: EntradaMaterialTableProps) {
   const columns = [
-    { header: "Fornecedor", accessor: "fornecedorNome" as keyof EntradaMaterial },
+    {
+      header: "Parceiro",
+      accessor: (item: EntradaMaterial) => item.clienteNome || item.fornecedorNome,
+    },
+    {
+      header: "Tipo",
+      accessor: (item: EntradaMaterial) => item.clienteId ? "Cliente" : "Fornecedor",
+    },
     { header: "Material", accessor: "materialNome" as keyof EntradaMaterial },
     {
       header: "Peso (kg)",

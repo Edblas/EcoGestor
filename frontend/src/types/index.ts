@@ -49,6 +49,13 @@ export enum TipoMovimentacao {
   AJUSTE = "AJUSTE"
 }
 
+export enum StatusFinanceiro {
+  PAGO = "PAGO",
+  RECEBIDO = "RECEBIDO",
+  PENDENTE = "PENDENTE",
+  ATRASADO = "ATRASADO"
+}
+
 export interface MovimentacaoEstoque {
   id: string;
   materialId: string;
@@ -66,14 +73,72 @@ export interface MovimentacaoEstoque {
 
 export interface EntradaMaterial {
   id: string;
-  fornecedorId: string;
-  fornecedorNome: string;
+  clienteId?: string;
+  clienteNome?: string;
+  fornecedorId?: string;
+  fornecedorNome?: string;
   materialId: string;
   materialNome: string;
   peso: number;
   valorKg: number;
   valorTotal: number;
   dataEntrada: string;
+  observacoes?: string;
+  createdAt: string;
+  active: boolean;
+}
+
+export interface SaidaMaterial {
+  id: string;
+  clienteId: string;
+  clienteNome: string;
+  materialId: string;
+  materialNome: string;
+  peso: number;
+  valorKg: number;
+  valorTotal: number;
+  dataSaida: string;
+  observacoes?: string;
+  createdAt: string;
+  active: boolean;
+}
+
+export interface TipoDespesa {
+  id: string;
+  nome: string;
+  descricao?: string;
+  createdAt: string;
+  active: boolean;
+}
+
+export interface Despesa {
+  id: string;
+  tipoDespesaId?: string;
+  tipoDespesaNome?: string;
+  entradaMaterialId?: string;
+  clienteId?: string;
+  clienteNome?: string;
+  fornecedorId?: string;
+  fornecedorNome?: string;
+  descricao: string;
+  valor: number;
+  dataVencimento: string;
+  dataPagamento?: string;
+  status: StatusFinanceiro;
+  observacoes?: string;
+  createdAt: string;
+  active: boolean;
+}
+
+export interface Receita {
+  id: string;
+  saidaMaterialId?: string;
+  clienteId?: string;
+  clienteNome?: string;
+  descricao: string;
+  valor: number;
+  dataRecebimento?: string;
+  status: StatusFinanceiro;
   observacoes?: string;
   createdAt: string;
   active: boolean;

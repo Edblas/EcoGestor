@@ -7,21 +7,17 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "entradas_materiais")
+@Table(name = "saidas_materiais")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EntradaMaterial extends BaseEntity {
+public class SaidaMaterial extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cliente_id")
+    @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fornecedor_id")
-    private Fornecedor fornecedor;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "material_id", nullable = false)
@@ -41,7 +37,7 @@ public class EntradaMaterial extends BaseEntity {
     private BigDecimal valorTotal;
 
     @Column(nullable = false)
-    private LocalDateTime dataEntrada;
+    private LocalDateTime dataSaida;
 
     @Column(columnDefinition = "TEXT")
     private String observacoes;

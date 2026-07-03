@@ -1,4 +1,4 @@
-package com.ecogestor.dto.entrada;
+package com.ecogestor.dto.saida;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
@@ -14,11 +14,10 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EntradaMaterialRequestDTO {
+public class SaidaMaterialRequestDTO {
 
+    @NotNull(message = "Cliente é obrigatório")
     private UUID clienteId;
-
-    private UUID fornecedorId;
 
     @NotNull(message = "Material é obrigatório")
     private UUID materialId;

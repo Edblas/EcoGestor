@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Users, Truck, Package, ArrowDownToLine, Warehouse, FileText } from "lucide-react";
+import { LayoutDashboard, Users, Truck, Package, ArrowDownToLine, ArrowUpFromLine, Warehouse, FileText, DollarSign } from "lucide-react";
 
 const menuItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -7,7 +7,9 @@ const menuItems = [
   { to: "/fornecedores", icon: Truck, label: "Fornecedores" },
   { to: "/materiais", icon: Package, label: "Materiais" },
   { to: "/entradas", icon: ArrowDownToLine, label: "Entradas" },
+  { to: "/saidas", icon: ArrowUpFromLine, label: "Saídas" },
   { to: "/estoque", icon: Warehouse, label: "Estoque" },
+  { to: "/financeiro", icon: DollarSign, label: "Financeiro" },
   { to: "/relatorios", icon: FileText, label: "Relatórios" },
 ];
 

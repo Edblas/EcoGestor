@@ -1,11 +1,13 @@
-package com.ecogestor.dto.entrada;
+package com.ecogestor.dto.financeiro;
 
+import com.ecogestor.entity.StatusFinanceiro;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -13,19 +15,16 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EntradaMaterialResponseDTO {
+public class ReceitaResponseDTO {
 
     private UUID id;
+    private UUID saidaMaterialId;
     private UUID clienteId;
     private String clienteNome;
-    private UUID fornecedorId;
-    private String fornecedorNome;
-    private UUID materialId;
-    private String materialNome;
-    private BigDecimal peso;
-    private BigDecimal valorKg;
-    private BigDecimal valorTotal;
-    private LocalDateTime dataEntrada;
+    private String descricao;
+    private BigDecimal valor;
+    private LocalDate dataRecebimento;
+    private StatusFinanceiro status;
     private String observacoes;
     private LocalDateTime createdAt;
     private Boolean active;

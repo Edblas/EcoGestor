@@ -17,11 +17,13 @@ public interface EntradaMaterialRepository extends JpaRepository<EntradaMaterial
     Page<EntradaMaterial> findAllActive(Pageable pageable);
 
     @Query("SELECT e FROM EntradaMaterial e WHERE " +
+           "(:clienteId IS NULL OR e.cliente.id = :clienteId) AND " +
            "(:fornecedorId IS NULL OR e.fornecedor.id = :fornecedorId) AND " +
            "(:materialId IS NULL OR e.material.id = :materialId) AND " +
            "e.active = true " +
            "ORDER BY e.dataEntrada DESC")
-    Page<EntradaMaterial> search(@Param("fornecedorId") UUID fornecedorId,
+    Page<EntradaMaterial> search(@Param("clienteId") UUID clienteId,
+                                 @Param("fornecedorId") UUID fornecedorId,
                                  @Param("materialId") UUID materialId,
                                  Pageable pageable);
 }

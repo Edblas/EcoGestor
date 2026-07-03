@@ -27,10 +27,11 @@ public class EntradaMaterialController {
 
     @GetMapping
     public ResponseEntity<Page<EntradaMaterialResponseDTO>> listar(
+            @RequestParam(required = false) UUID clienteId,
             @RequestParam(required = false) UUID fornecedorId,
             @RequestParam(required = false) UUID materialId,
             Pageable pageable) {
-        return ResponseEntity.ok(entradaMaterialService.listar(fornecedorId, materialId, pageable));
+        return ResponseEntity.ok(entradaMaterialService.listar(clienteId, fornecedorId, materialId, pageable));
     }
 
     @GetMapping("/{id}")

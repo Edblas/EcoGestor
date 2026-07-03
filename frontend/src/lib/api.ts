@@ -1,6 +1,6 @@
-import { Cliente, Fornecedor, Material, Page, TipoMovimentacao, MovimentacaoEstoque, EntradaMaterial } from "@/types";
+import { Cliente, Fornecedor, Material, Page, TipoMovimentacao, MovimentacaoEstoque, EntradaMaterial, SaidaMaterial, TipoDespesa, Despesa, Receita, StatusFinanceiro } from "@/types";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8081/api";
 
 async function apiRequest<T>(
   endpoint: string,
@@ -129,8 +129,9 @@ export const api = {
     getSaidasHoje: (): Promise<number> => apiRequest(`/estoque/movimentacoes/hoje/${TipoMovimentacao.SAIDA}`),
   },
   entradas: {
-    listar: (fornecedorId?: string, materialId?: string, page = 0, size = 10): Promise<Page<EntradaMaterial>> => {
+    listar: (clienteId?: string, fornecedorId?: string, materialId?: string, page = 0, size = 10): Promise<Page<EntradaMaterial>> => {
       const params = new URLSearchParams();
+      if (clienteId) params.append("clienteId", clienteId);
       if (fornecedorId) params.append("fornecedorId", fornecedorId);
       if (materialId) params.append("materialId", materialId);
       params.append("page", page.toString());
@@ -143,5 +144,83 @@ export const api = {
         method: "POST",
         body: JSON.stringify(data),
       }),
+  },
+  saidas: {
+    listar: (clienteId?: string, materialId?: string, page = 0, size = 10): Promise<Page<SaidaMaterial>> => {
+      const params = new URLSearchParams();
+      if (clienteId) params.append("clienteId", clienteId);
+      if (materialId) params.append("materialId", materialId);
+      params.append("page", page.toString());
+      params.append("size", size.toString());
+      return apiRequest(`/saidas?${params.toString()}`);
+    },
+    get: (id: string): Promise<SaidaMaterial> => apiRequest(`/saidas/${id}`),
+    registrar: (data: Omit<SaidaMaterial, "id" | "createdAt" | "updatedAt" | "active">): Promise<SaidaMaterial> =>
+      apiRequest("/saidas", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+  },
+  tiposDespesa: {
+    listar: (page = 0, size = 10): Promise<Page<TipoDespesa>> => {
+      const params = new URLSearchParams();
+      params.append("page", page.toString());
+      params.append("size", size.toString());
+      return apiRequest(`/tipos-despesa?${params.toString()}`);
+    },
+    get: (id: string): Promise<TipoDespesa> => apiRequest(`/tipos-despesa/${id}`),
+    create: (data: Omit<TipoDespesa, "id" | "createdAt" | "active">): Promise<TipoDespesa> =>
+      apiRequest("/tipos-despesa", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string): Promise<void> =>
+      apiRequest(`/tipos-despesa/${id}`, {
+        method: "DELETE",
+      }),
+  },
+  despesas: {
+    listar: (status?: StatusFinanceiro, page = 0, size = 10): Promise<Page<Despesa>> => {
+      const params = new URLSearchParams();
+      if (status) params.append("status", status);
+      params.append("page", page.toString());
+      params.append("size", size.toString());
+      return apiRequest(`/despesas?${params.toString()}`);
+    },
+    get: (id: string): Promise<Despesa> => apiRequest(`/despesas/${id}`),
+    create: (data: Omit<Despesa, "id" | "createdAt" | "active">): Promise<Despesa> =>
+      apiRequest("/despesas", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string): Promise<void> =>
+      apiRequest(`/despesas/${id}`, {
+        method: "DELETE",
+      }),
+    getTotalDespesas: (): Promise<number> => apiRequest("/despesas/total"),
+    getTotalPago: (): Promise<number> => apiRequest("/despesas/total-pago"),
+    getTotalPendente: (): Promise<number> => apiRequest("/despesas/total-pendente"),
+  },
+  receitas: {
+    listar: (status?: StatusFinanceiro, page = 0, size = 10): Promise<Page<Receita>> => {
+      const params = new URLSearchParams();
+      if (status) params.append("status", status);
+      params.append("page", page.toString());
+      params.append("size", size.toString());
+      return apiRequest(`/receitas?${params.toString()}`);
+    },
+    get: (id: string): Promise<Receita> => apiRequest(`/receitas/${id}`),
+    create: (data: Omit<Receita, "id" | "createdAt" | "active">): Promise<Receita> =>
+      apiRequest("/receitas", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string): Promise<void> =>
+      apiRequest(`/receitas/${id}`, {
+        method: "DELETE",
+      }),
+    getTotalReceitas: (): Promise<number> => apiRequest("/receitas/total"),
+    getTotalRecebido: (): Promise<number> => apiRequest("/receitas/total-recebido"),
+    getTotalPendente: (): Promise<number> => apiRequest("/receitas/total-pendente"),
   },
 };

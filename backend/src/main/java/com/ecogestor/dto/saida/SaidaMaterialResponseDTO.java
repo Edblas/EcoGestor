@@ -1,4 +1,4 @@
-package com.ecogestor.dto.entrada;
+package com.ecogestor.dto.saida;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,19 +13,17 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EntradaMaterialResponseDTO {
+public class SaidaMaterialResponseDTO {
 
     private UUID id;
     private UUID clienteId;
     private String clienteNome;
-    private UUID fornecedorId;
-    private String fornecedorNome;
     private UUID materialId;
     private String materialNome;
     private BigDecimal peso;
     private BigDecimal valorKg;
     private BigDecimal valorTotal;
-    private LocalDateTime dataEntrada;
+    private LocalDateTime dataSaida;
     private String observacoes;
     private LocalDateTime createdAt;
     private Boolean active;
