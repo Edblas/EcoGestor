@@ -24,6 +24,17 @@ public interface DespesaRepository extends JpaRepository<Despesa, UUID> {
             "ORDER BY d.dataVencimento DESC")
     Page<Despesa> search(@Param("status") StatusFinanceiro status, Pageable pageable);
 
+    @Query("SELECT d FROM Despesa d WHERE " +
+            "(:status IS NULL OR d.status = :status) AND " +
+            "(:inicio IS NULL OR d.dataVencimento >= :inicio) AND " +
+            "(:fim IS NULL OR d.dataVencimento <= :fim) AND " +
+            "d.active = true " +
+            "ORDER BY d.dataVencimento DESC")
+    Page<Despesa> search(@Param("status") StatusFinanceiro status,
+                         @Param("inicio") LocalDate inicio,
+                         @Param("fim") LocalDate fim,
+                         Pageable pageable);
+
     @Query("SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d WHERE d.active = true")
     BigDecimal calcularTotalDespesas();
 

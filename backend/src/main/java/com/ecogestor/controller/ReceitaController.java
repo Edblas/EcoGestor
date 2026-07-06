@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @RestController
@@ -30,8 +31,10 @@ public class ReceitaController {
     @GetMapping
     public ResponseEntity<Page<ReceitaResponseDTO>> listar(
             @RequestParam(required = false) StatusFinanceiro status,
+            @RequestParam(required = false) LocalDate inicio,
+            @RequestParam(required = false) LocalDate fim,
             Pageable pageable) {
-        return ResponseEntity.ok(receitaService.listar(status, pageable));
+        return ResponseEntity.ok(receitaService.listar(status, inicio, fim, pageable));
     }
 
     @GetMapping("/{id}")
@@ -49,9 +52,24 @@ public class ReceitaController {
         return ResponseEntity.ok(receitaService.getTotalRecebido());
     }
 
+    @GetMapping("/total-por-periodo")
+    public ResponseEntity<BigDecimal> getTotalReceitasPorPeriodo(@RequestParam LocalDate inicio, @RequestParam LocalDate fim) {
+        return ResponseEntity.ok(receitaService.getTotalReceitasPorPeriodo(inicio, fim));
+    }
+
+    @GetMapping("/total-recebido-por-periodo")
+    public ResponseEntity<BigDecimal> getTotalRecebidoPorPeriodo(@RequestParam LocalDate inicio, @RequestParam LocalDate fim) {
+        return ResponseEntity.ok(receitaService.getTotalRecebidoPorPeriodo(inicio, fim));
+    }
+
     @GetMapping("/total-pendente")
     public ResponseEntity<BigDecimal> getTotalPendente() {
         return ResponseEntity.ok(receitaService.getTotalPendente());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ReceitaResponseDTO> atualizar(@PathVariable UUID id, @Valid @RequestBody ReceitaRequestDTO dto) {
+        return ResponseEntity.ok(receitaService.atualizar(id, dto));
     }
 
     @DeleteMapping("/{id}")

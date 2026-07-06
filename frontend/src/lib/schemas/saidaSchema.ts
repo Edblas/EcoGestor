@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { StatusSaidaMaterial } from "@/types";
 
 export const saidaMaterialSchema = z.object({
   clienteId: z.string().min(1, "Cliente é obrigatório"),
@@ -6,6 +7,7 @@ export const saidaMaterialSchema = z.object({
   peso: z.number().min(0.01, "Peso deve ser maior que 0"),
   valorKg: z.number().min(0.01, "Valor por kg deve ser maior que 0"),
   dataSaida: z.string().min(1, "Data é obrigatória"),
+  status: z.nativeEnum(StatusSaidaMaterial),
   observacoes: z.string().optional(),
 });
 

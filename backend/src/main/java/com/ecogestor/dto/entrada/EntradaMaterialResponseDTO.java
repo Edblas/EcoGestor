@@ -1,5 +1,6 @@
 package com.ecogestor.dto.entrada;
 
+import com.ecogestor.entity.StatusEntradaMaterial;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,6 +26,7 @@ public class EntradaMaterialResponseDTO {
     private BigDecimal peso;
     private BigDecimal valorKg;
     private BigDecimal valorTotal;
+    private StatusEntradaMaterial status;
     private LocalDateTime dataEntrada;
     private String observacoes;
     private LocalDateTime createdAt;

@@ -2,11 +2,12 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { ClienteTable } from "@/components/cliente/ClienteTable";
+import { ClienteDetalhes } from "@/components/cliente/ClienteDetalhes";
 import { ClienteForm } from "@/components/cliente/ClienteForm";
 import { api } from "@/lib/api";
 import { Cliente, Page as PageType } from "@/types";
@@ -16,14 +17,34 @@ export function ClientesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | undefined>();
   const [deletingCliente, setDeletingCliente] = useState<Cliente | undefined>();
+  const [selectedCliente, setSelectedCliente] = useState<Cliente | undefined>();
   const [currentPage, setCurrentPage] = useState(0);
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery<PageType<Cliente>>({
     queryKey: ["clientes", searchTerm, currentPage],
     queryFn: () => api.clientes.search(searchTerm, currentPage),
+  });
+
+  const { data: clienteDetalhes, isLoading: isLoadingClienteDetalhes } = useQuery({
+    queryKey: ["clientes", "detalhes", selectedCliente?.id],
+    queryFn: () => api.clientes.get(selectedCliente!.id),
+    enabled: !!selectedCliente,
+  });
+
+  const { data: entradasCliente, isLoading: isLoadingEntradasCliente } = useQuery({
+    queryKey: ["clientes", "entradas", selectedCliente?.id],
+    queryFn: () => api.entradas.listar(selectedCliente!.id, undefined, undefined, 0, 100),
+    enabled: !!selectedCliente,
+  });
+
+  const { data: saidasCliente, isLoading: isLoadingSaidasCliente } = useQuery({
+    queryKey: ["clientes", "saidas", selectedCliente?.id],
+    queryFn: () => api.saidas.listar(selectedCliente!.id, undefined, 0, 100),
+    enabled: !!selectedCliente,
   });
 
   const createMutation = useMutation({
@@ -79,6 +100,11 @@ export function ClientesPage() {
     setIsDeleteModalOpen(true);
   };
 
+  const handleOpenDetailsModal = (cliente: Cliente) => {
+    setSelectedCliente(cliente);
+    setIsDetailsModalOpen(true);
+  };
+
   const handleSubmit = async (data: ClienteFormData) => {
     if (editingCliente) {
       await updateMutation.mutateAsync({ id: editingCliente.id, data });
@@ -124,6 +150,7 @@ export function ClientesPage() {
               loading={isLoading}
               onEdit={handleOpenEditModal}
               onDelete={handleOpenDeleteModal}
+              onSelect={handleOpenDetailsModal}
             />
 
             {data && data.totalPages > 1 && (
@@ -165,6 +192,23 @@ export function ClientesPage() {
           onSubmit={handleSubmit}
           onCancel={() => setIsModalOpen(false)}
           isSubmitting={createMutation.isPending || updateMutation.isPending}
+        />
+      </Modal>
+
+      <Modal
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        title={selectedCliente ? `Histórico de ${selectedCliente.nome}` : "Histórico do Cliente"}
+      >
+        <ClienteDetalhes
+          cliente={clienteDetalhes}
+          entradas={entradasCliente?.content || []}
+          saidas={saidasCliente?.content || []}
+          isLoading={
+            isLoadingClienteDetalhes ||
+            isLoadingEntradasCliente ||
+            isLoadingSaidasCliente
+          }
         />
       </Modal>
 

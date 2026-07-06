@@ -31,3 +31,4 @@ Thumbs.db
 # Logs
 *.log
 application-local.properties
+.env.production

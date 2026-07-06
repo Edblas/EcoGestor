@@ -30,7 +30,7 @@ export function MaterialForm({ initialData, onSubmit, onCancel, isSubmitting }: 
           nome: "",
           categoria: "",
           unidadeMedida: "",
-          valorPadraoKg: 0,
+          valorPadraoKg: undefined,
         },
   });
 
@@ -50,11 +50,14 @@ export function MaterialForm({ initialData, onSubmit, onCancel, isSubmitting }: 
           <Input {...register("unidadeMedida")} error={errors.unidadeMedida?.message} placeholder="kg, tonelada" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Valor Padrão por kg *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Valor Padrão por kg</label>
           <Input
             type="number"
             step="0.01"
-            {...register("valorPadraoKg", { valueAsNumber: true })}
+            {...register("valorPadraoKg", { 
+              valueAsNumber: true,
+              setValueAs: (v) => v === "" ? undefined : Number(v)
+            })}
             error={errors.valorPadraoKg?.message}
           />
         </div>

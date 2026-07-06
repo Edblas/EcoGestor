@@ -4,6 +4,9 @@ export const entradaMaterialSchema = z.object({
   tipoParceiro: z.enum(["CLIENTE", "FORNECEDOR"], {
     required_error: "Selecione um tipo de parceiro",
   }),
+  status: z.enum(["EM_ANDAMENTO", "FINALIZADO"], {
+    required_error: "Selecione o status da entrada",
+  }),
   clienteId: z.string().optional(),
   fornecedorId: z.string().optional(),
   materialId: z.string().min(1, "Material é obrigatório"),

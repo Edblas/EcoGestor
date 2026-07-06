@@ -3,12 +3,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { saidaMaterialSchema, SaidaMaterialFormData } from "@/lib/schemas/saidaSchema";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { Material, Cliente } from "@/types";
+import { Material, Cliente, SaidaMaterial, StatusSaidaMaterial } from "@/types";
 import { useEffect } from "react";
 
 interface SaidaMaterialFormProps {
   materials: Material[];
   clientes: Cliente[];
+  initialData?: SaidaMaterial;
   onSubmit: (data: SaidaMaterialFormData) => Promise<void>;
   onCancel: () => void;
   isSubmitting?: boolean;
@@ -17,6 +18,7 @@ interface SaidaMaterialFormProps {
 export function SaidaMaterialForm({
   materials,
   clientes,
+  initialData,
   onSubmit,
   onCancel,
   isSubmitting,
@@ -29,14 +31,25 @@ export function SaidaMaterialForm({
     formState: { errors },
   } = useForm<SaidaMaterialFormData>({
     resolver: zodResolver(saidaMaterialSchema),
-    defaultValues: {
-      clienteId: "",
-      materialId: "",
-      peso: 0,
-      valorKg: 0,
-      dataSaida: new Date().toISOString().split("T")[0],
-      observacoes: "",
-    },
+    defaultValues: initialData
+      ? {
+          clienteId: initialData.clienteId,
+          materialId: initialData.materialId,
+          peso: initialData.peso,
+          valorKg: initialData.valorKg,
+          dataSaida: new Date(initialData.dataSaida).toISOString().split("T")[0],
+          status: initialData.status,
+          observacoes: initialData.observacoes || "",
+        }
+      : {
+          clienteId: "",
+          materialId: "",
+          peso: 0,
+          valorKg: 0,
+          dataSaida: new Date().toISOString().split("T")[0],
+          status: StatusSaidaMaterial.FINALIZADO,
+          observacoes: "",
+        },
   });
 
   const selectedMaterialId = watch("materialId");
@@ -44,12 +57,22 @@ export function SaidaMaterialForm({
   useEffect(() => {
     const material = materials.find((m) => m.id === selectedMaterialId);
     if (material) {
-      setValue("valorKg", material.valorPadraoKg);
+      if (!initialData || selectedMaterialId !== initialData.materialId) {
+        setValue("valorKg", material.valorPadraoKg);
+      }
     }
-  }, [selectedMaterialId, materials, setValue]);
+  }, [selectedMaterialId, materials, setValue, initialData]);
+
+  const handleFormSubmit = (data: SaidaMaterialFormData) => {
+    const submitData = {
+      ...data,
+      status: initialData ? StatusSaidaMaterial.EM_ANDAMENTO : data.status,
+    };
+    onSubmit(submitData);
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -121,6 +144,35 @@ export function SaidaMaterialForm({
             error={errors.dataSaida?.message}
           />
         </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Status *
+          </label>
+          {initialData ? (
+            <>
+              <input type="hidden" {...register("status")} />
+              <select
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100"
+              >
+                <option value={StatusSaidaMaterial.EM_ANDAMENTO}>Em andamento</option>
+              </select>
+            </>
+          ) : (
+            <>
+              <select
+                {...register("status")}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              >
+                <option value={StatusSaidaMaterial.FINALIZADO}>Concluída</option>
+                <option value={StatusSaidaMaterial.EM_ANDAMENTO}>Em andamento</option>
+              </select>
+              {errors.status && (
+                <p className="text-sm text-red-600 mt-1">{errors.status.message}</p>
+              )}
+            </>
+          )}
+        </div>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -142,7 +194,7 @@ export function SaidaMaterialForm({
           Cancelar
         </Button>
         <Button type="submit" isLoading={isSubmitting}>
-          Registrar
+          {initialData ? "Salvar" : "Registrar"}
         </Button>
       </div>
     </form>

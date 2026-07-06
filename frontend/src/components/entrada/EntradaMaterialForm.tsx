@@ -3,13 +3,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { entradaMaterialSchema, EntradaMaterialFormData } from "@/lib/schemas/entradaSchema";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { Material, Fornecedor, Cliente } from "@/types";
+import { Material, Fornecedor, Cliente, EntradaMaterial, StatusEntradaMaterial } from "@/types";
 import { useEffect } from "react";
 
 interface EntradaMaterialFormProps {
   materials: Material[];
   fornecedores: Fornecedor[];
   clientes: Cliente[];
+  initialData?: EntradaMaterial;
   onSubmit: (data: any) => Promise<void>;
   onCancel: () => void;
   isSubmitting?: boolean;
@@ -19,6 +20,7 @@ export function EntradaMaterialForm({
   materials,
   fornecedores,
   clientes,
+  initialData,
   onSubmit,
   onCancel,
   isSubmitting,
@@ -31,33 +33,48 @@ export function EntradaMaterialForm({
     formState: { errors },
   } = useForm<EntradaMaterialFormData>({
     resolver: zodResolver(entradaMaterialSchema),
-    defaultValues: {
-      tipoParceiro: "FORNECEDOR",
-      clienteId: "",
-      fornecedorId: "",
-      materialId: "",
-      peso: 0,
-      valorKg: 0,
-      dataEntrada: new Date().toISOString().split("T")[0],
-      observacoes: "",
-    },
+    defaultValues: initialData
+      ? {
+          tipoParceiro: initialData.clienteId ? "CLIENTE" : "FORNECEDOR",
+          status: initialData.status,
+          clienteId: initialData.clienteId || "",
+          fornecedorId: initialData.fornecedorId || "",
+          materialId: initialData.materialId,
+          peso: initialData.peso,
+          valorKg: initialData.valorKg,
+          dataEntrada: new Date(initialData.dataEntrada).toISOString().split("T")[0],
+          observacoes: initialData.observacoes || "",
+        }
+      : {
+          tipoParceiro: "FORNECEDOR",
+          status: StatusEntradaMaterial.EM_ANDAMENTO,
+          clienteId: "",
+          fornecedorId: "",
+          materialId: "",
+          peso: 0,
+          valorKg: 0,
+          dataEntrada: new Date().toISOString().split("T")[0],
+          observacoes: "",
+        },
   });
 
   const selectedMaterialId = watch("materialId");
-  const peso = watch("peso");
   const tipoParceiro = watch("tipoParceiro");
 
   useEffect(() => {
     const material = materials.find((m) => m.id === selectedMaterialId);
-    if (material) {
-      setValue("valorKg", material.valorPadraoKg);
+    if (material && material.valorPadraoKg != null) {
+      if (!initialData || selectedMaterialId !== initialData.materialId) {
+        setValue("valorKg", material.valorPadraoKg);
+      }
     }
-  }, [selectedMaterialId, materials, setValue]);
+  }, [selectedMaterialId, materials, setValue, initialData]);
 
   const handleFormSubmit = (data: EntradaMaterialFormData) => {
     const { tipoParceiro, clienteId, fornecedorId, ...rest } = data;
     const submitData = {
       ...rest,
+      status: initialData ? StatusEntradaMaterial.EM_ANDAMENTO : rest.status,
       clienteId: tipoParceiro === "CLIENTE" ? clienteId : undefined,
       fornecedorId: tipoParceiro === "FORNECEDOR" ? fornecedorId : undefined,
     };
@@ -78,6 +95,36 @@ export function EntradaMaterialForm({
             <option value="FORNECEDOR">Fornecedor</option>
             <option value="CLIENTE">Cliente</option>
           </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Status *
+          </label>
+          {initialData ? (
+            <>
+              <input type="hidden" {...register("status")} />
+              <select
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100"
+              >
+                <option value={StatusEntradaMaterial.EM_ANDAMENTO}>Em andamento</option>
+              </select>
+            </>
+          ) : (
+            <>
+              <select
+                {...register("status")}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              >
+                <option value={StatusEntradaMaterial.EM_ANDAMENTO}>Em andamento</option>
+                <option value={StatusEntradaMaterial.FINALIZADO}>Finalizado</option>
+              </select>
+              {errors.status && (
+                <p className="text-sm text-red-600 mt-1">{errors.status.message}</p>
+              )}
+            </>
+          )}
         </div>
 
         {tipoParceiro === "FORNECEDOR" && (
@@ -196,7 +243,7 @@ export function EntradaMaterialForm({
           Cancelar
         </Button>
         <Button type="submit" isLoading={isSubmitting}>
-          Registrar
+          {initialData ? "Salvar" : "Registrar"}
         </Button>
       </div>
     </form>

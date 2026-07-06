@@ -1,5 +1,6 @@
 package com.ecogestor.dto.saida;
 
+import com.ecogestor.entity.StatusSaidaMaterial;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,6 +24,7 @@ public class SaidaMaterialResponseDTO {
     private BigDecimal peso;
     private BigDecimal valorKg;
     private BigDecimal valorTotal;
+    private StatusSaidaMaterial status;
     private LocalDateTime dataSaida;
     private String observacoes;
     private LocalDateTime createdAt;

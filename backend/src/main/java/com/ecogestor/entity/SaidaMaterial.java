@@ -24,8 +24,12 @@ public class SaidaMaterial extends BaseEntity {
     private Material material;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "movimentacao_estoque_id", nullable = false)
+    @JoinColumn(name = "movimentacao_estoque_id")
     private MovimentacaoEstoque movimentacaoEstoque;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusSaidaMaterial status;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal peso;

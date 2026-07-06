@@ -8,6 +8,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -26,4 +29,16 @@ public interface EntradaMaterialRepository extends JpaRepository<EntradaMaterial
                                  @Param("fornecedorId") UUID fornecedorId,
                                  @Param("materialId") UUID materialId,
                                  Pageable pageable);
+
+    @Query("SELECT e FROM EntradaMaterial e WHERE e.dataEntrada BETWEEN :dataInicio AND :dataFim AND e.active = true ORDER BY e.dataEntrada ASC")
+    List<EntradaMaterial> findByDataEntradaBetween(@Param("dataInicio") LocalDateTime dataInicio, @Param("dataFim") LocalDateTime dataFim);
+
+    @Query("SELECT COALESCE(SUM(e.valorTotal), 0) FROM EntradaMaterial e WHERE e.active = true AND e.status = 'FINALIZADO'")
+    BigDecimal calcularTotalValorEntradasFinalizadas();
+
+    @Query("SELECT COALESCE(SUM(e.valorTotal), 0) FROM EntradaMaterial e " +
+            "WHERE e.active = true AND e.status = 'FINALIZADO' " +
+            "AND e.dataEntrada BETWEEN :inicio AND :fim")
+    BigDecimal calcularTotalValorEntradasFinalizadasPorPeriodo(@Param("inicio") LocalDateTime inicio,
+                                                               @Param("fim") LocalDateTime fim);
 }

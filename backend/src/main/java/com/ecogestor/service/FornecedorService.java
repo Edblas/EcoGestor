@@ -43,6 +43,10 @@ public class FornecedorService {
         return fornecedorMapper.toResponseDTO(fornecedor);
     }
 
+    public boolean existsByCpfCnpj(String cpfCnpj) {
+        return fornecedorRepository.findByCpfCnpj(cpfCnpj).isPresent();
+    }
+
     public FornecedorResponseDTO update(UUID id, FornecedorRequestDTO dto) {
         Fornecedor fornecedor = fornecedorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Fornecedor não encontrado com id: " + id));

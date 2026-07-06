@@ -17,7 +17,7 @@ public interface FornecedorRepository extends JpaRepository<Fornecedor, UUID> {
     Optional<Fornecedor> findByCpfCnpj(String cpfCnpj);
 
     @Query("SELECT f FROM Fornecedor f WHERE " +
-           "(:search IS NULL OR LOWER(f.nome) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "(:search IS NULL OR :search = '' OR LOWER(f.nome) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(f.cpfCnpj) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(f.telefone) LIKE LOWER(CONCAT('%', :search, '%'))) " +
            "AND f.active = true")

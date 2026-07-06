@@ -9,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -36,6 +35,11 @@ public class ClienteController {
     @GetMapping("/{id}")
     public ResponseEntity<ClienteResponseDTO> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(clienteService.findById(id));
+    }
+
+    @GetMapping("/check-cpf-cnpj")
+    public ResponseEntity<Boolean> checkCpfCnpj(@RequestParam String cpfCnpj) {
+        return ResponseEntity.ok(clienteService.existsByCpfCnpj(cpfCnpj));
     }
 
     @PutMapping("/{id}")

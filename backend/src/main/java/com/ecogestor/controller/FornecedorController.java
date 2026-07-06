@@ -37,6 +37,11 @@ public class FornecedorController {
         return ResponseEntity.ok(fornecedorService.findById(id));
     }
 
+    @GetMapping("/check-cpf-cnpj")
+    public ResponseEntity<Boolean> checkCpfCnpj(@RequestParam String cpfCnpj) {
+        return ResponseEntity.ok(fornecedorService.existsByCpfCnpj(cpfCnpj));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<FornecedorResponseDTO> update(@PathVariable UUID id, @Valid @RequestBody FornecedorRequestDTO dto) {
         return ResponseEntity.ok(fornecedorService.update(id, dto));

@@ -25,7 +25,6 @@ public class MaterialRequestDTO {
     @NotBlank(message = "Unidade de medida é obrigatória")
     private String unidadeMedida;
 
-    @NotNull(message = "Valor padrão por kg é obrigatório")
     @DecimalMin(value = "0.01", message = "Valor padrão por kg deve ser maior que zero")
     private BigDecimal valorPadraoKg;
 }

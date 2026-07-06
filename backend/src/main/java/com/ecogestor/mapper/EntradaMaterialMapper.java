@@ -14,5 +14,6 @@ public interface EntradaMaterialMapper {
     @Mapping(target = "fornecedorNome", source = "fornecedor.nome")
     @Mapping(target = "materialId", source = "material.id")
     @Mapping(target = "materialNome", source = "material.nome")
+    @Mapping(target = "status", source = "status")
     EntradaMaterialResponseDTO toResponseDTO(EntradaMaterial entity);
 }

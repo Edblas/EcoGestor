@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Service
@@ -65,13 +66,9 @@ public class DespesaService {
         return despesaMapper.toResponseDTO(despesa);
     }
 
-    public Page<DespesaResponseDTO> listar(StatusFinanceiro status, Pageable pageable) {
+    public Page<DespesaResponseDTO> listar(StatusFinanceiro status, LocalDate inicio, LocalDate fim, Pageable pageable) {
         Page<Despesa> despesas;
-        if (status != null) {
-            despesas = despesaRepository.search(status, pageable);
-        } else {
-            despesas = despesaRepository.findAllActive(pageable);
-        }
+        despesas = despesaRepository.search(status, inicio, fim, pageable);
         return despesas.map(despesaMapper::toResponseDTO);
     }
 
@@ -89,8 +86,68 @@ public class DespesaService {
         return despesaRepository.calcularTotalPago();
     }
 
+    public BigDecimal getTotalDespesasPorPeriodo(LocalDate inicio, LocalDate fim) {
+        return despesaRepository.calcularTotalPorPeriodo(inicio, fim);
+    }
+
+    public BigDecimal getTotalPagoPorPeriodo(LocalDate inicio, LocalDate fim) {
+        return despesaRepository.calcularTotalPagoPorPeriodo(inicio, fim);
+    }
+
     public BigDecimal getTotalPendente() {
         return despesaRepository.calcularTotalPendente();
+    }
+
+    @Transactional
+    public DespesaResponseDTO atualizar(UUID id, DespesaRequestDTO dto) {
+        Despesa despesa = despesaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Despesa não encontrada"));
+
+        if (!Boolean.TRUE.equals(despesa.getActive())) {
+            throw new IllegalArgumentException("Não é possível editar uma despesa excluída.");
+        }
+
+        despesa.setDescricao(dto.getDescricao());
+        despesa.setValor(dto.getValor());
+        despesa.setDataVencimento(dto.getDataVencimento());
+        despesa.setDataPagamento(dto.getDataPagamento());
+        despesa.setStatus(dto.getStatus());
+        despesa.setObservacoes(dto.getObservacoes());
+
+        if (dto.getTipoDespesaId() != null) {
+            TipoDespesa tipoDespesa = tipoDespesaRepository.findById(dto.getTipoDespesaId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Tipo de despesa não encontrado"));
+            despesa.setTipoDespesa(tipoDespesa);
+        } else {
+            despesa.setTipoDespesa(null);
+        }
+
+        if (dto.getEntradaMaterialId() != null) {
+            EntradaMaterial entradaMaterial = entradaMaterialRepository.findById(dto.getEntradaMaterialId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Entrada de material não encontrada"));
+            despesa.setEntradaMaterial(entradaMaterial);
+        } else {
+            despesa.setEntradaMaterial(null);
+        }
+
+        if (dto.getClienteId() != null) {
+            Cliente cliente = clienteRepository.findById(dto.getClienteId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado"));
+            despesa.setCliente(cliente);
+        } else {
+            despesa.setCliente(null);
+        }
+
+        if (dto.getFornecedorId() != null) {
+            Fornecedor fornecedor = fornecedorRepository.findById(dto.getFornecedorId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Fornecedor não encontrado"));
+            despesa.setFornecedor(fornecedor);
+        } else {
+            despesa.setFornecedor(null);
+        }
+
+        despesa = despesaRepository.save(despesa);
+        return despesaMapper.toResponseDTO(despesa);
     }
 
     @Transactional

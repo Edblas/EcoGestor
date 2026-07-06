@@ -1,12 +1,15 @@
 import { DataTable } from "@/components/ui/DataTable";
 import { Receita, StatusFinanceiro } from "@/types";
+import { Button } from "@/components/ui/Button";
+import { Edit2 } from "lucide-react";
 
 interface ReceitaTableProps {
   data: Receita[];
   loading?: boolean;
+  onEdit?: (receita: Receita) => void;
 }
 
-export function ReceitaTable({ data, loading }: ReceitaTableProps) {
+export function ReceitaTable({ data, loading, onEdit }: ReceitaTableProps) {
   const getStatusColor = (status: StatusFinanceiro) => {
     switch (status) {
       case StatusFinanceiro.RECEBIDO:
@@ -45,6 +48,26 @@ export function ReceitaTable({ data, loading }: ReceitaTableProps) {
           {item.status}
         </span>
       ),
+    },
+    {
+      header: "Ações",
+      accessor: (item: Receita) => (
+        <div className="flex gap-2">
+          {onEdit && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(item);
+              }}
+            >
+              <Edit2 className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      ),
+      className: "w-24",
     },
   ];
 

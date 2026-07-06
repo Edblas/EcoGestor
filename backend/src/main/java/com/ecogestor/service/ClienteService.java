@@ -43,6 +43,10 @@ public class ClienteService {
         return clienteMapper.toResponseDTO(cliente);
     }
 
+    public boolean existsByCpfCnpj(String cpfCnpj) {
+        return clienteRepository.findByCpfCnpj(cpfCnpj).isPresent();
+    }
+
     public ClienteResponseDTO update(UUID id, ClienteRequestDTO dto) {
         Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado com id: " + id));

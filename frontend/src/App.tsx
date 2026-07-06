@@ -9,6 +9,7 @@ import { EstoquePage } from "./pages/EstoquePage";
 import { EntradasPage } from "./pages/EntradasPage";
 import { SaidasPage } from "./pages/SaidasPage";
 import { FinanceiroPage } from "./pages/FinanceiroPage";
+import { RelatoriosPage } from "./pages/RelatoriosPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -60,6 +61,11 @@ function App() {
         <Route path="/financeiro" element={
           <ProtectedRoute>
             <FinanceiroPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/relatorios" element={
+          <ProtectedRoute>
+            <RelatoriosPage />
           </ProtectedRoute>
         } />
         <Route path="*" element={<Navigate to="/" replace />} />

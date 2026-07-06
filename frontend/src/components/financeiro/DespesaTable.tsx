@@ -1,12 +1,15 @@
 import { DataTable } from "@/components/ui/DataTable";
 import { Despesa, StatusFinanceiro } from "@/types";
+import { Button } from "@/components/ui/Button";
+import { Edit2 } from "lucide-react";
 
 interface DespesaTableProps {
   data: Despesa[];
   loading?: boolean;
+  onEdit?: (despesa: Despesa) => void;
 }
 
-export function DespesaTable({ data, loading }: DespesaTableProps) {
+export function DespesaTable({ data, loading, onEdit }: DespesaTableProps) {
   const getStatusColor = (status: StatusFinanceiro) => {
     switch (status) {
       case StatusFinanceiro.PAGO:
@@ -45,6 +48,26 @@ export function DespesaTable({ data, loading }: DespesaTableProps) {
           {item.status}
         </span>
       ),
+    },
+    {
+      header: "Ações",
+      accessor: (item: Despesa) => (
+        <div className="flex gap-2">
+          {onEdit && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(item);
+              }}
+            >
+              <Edit2 className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      ),
+      className: "w-24",
     },
   ];
 

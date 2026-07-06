@@ -23,6 +23,6 @@ public class Material extends BaseEntity {
     @Column(nullable = false)
     private String unidadeMedida;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(precision = 10, scale = 2)
     private BigDecimal valorPadraoKg;
 }

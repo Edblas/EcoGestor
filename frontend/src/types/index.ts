@@ -49,6 +49,16 @@ export enum TipoMovimentacao {
   AJUSTE = "AJUSTE"
 }
 
+export enum StatusEntradaMaterial {
+  EM_ANDAMENTO = "EM_ANDAMENTO",
+  FINALIZADO = "FINALIZADO"
+}
+
+export enum StatusSaidaMaterial {
+  EM_ANDAMENTO = "EM_ANDAMENTO",
+  FINALIZADO = "FINALIZADO"
+}
+
 export enum StatusFinanceiro {
   PAGO = "PAGO",
   RECEBIDO = "RECEBIDO",
@@ -82,6 +92,7 @@ export interface EntradaMaterial {
   peso: number;
   valorKg: number;
   valorTotal: number;
+  status: StatusEntradaMaterial;
   dataEntrada: string;
   observacoes?: string;
   createdAt: string;
@@ -97,6 +108,7 @@ export interface SaidaMaterial {
   peso: number;
   valorKg: number;
   valorTotal: number;
+  status: StatusSaidaMaterial;
   dataSaida: string;
   observacoes?: string;
   createdAt: string;

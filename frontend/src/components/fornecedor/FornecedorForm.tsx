@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { fornecedorSchema, FornecedorFormData } from "@/lib/schemas/fornecedorSchema";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Fornecedor } from "@/types";
+import { api } from "@/lib/api";
 
 interface FornecedorFormProps {
   initialData?: Fornecedor;
@@ -13,10 +15,16 @@ interface FornecedorFormProps {
 }
 
 export function FornecedorForm({ initialData, onSubmit, onCancel, isSubmitting }: FornecedorFormProps) {
+  const [cpfCnpjError, setCpfCnpjError] = useState<string | undefined>(undefined);
+  const [checkingCpfCnpj, setCheckingCpfCnpj] = useState(false);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
+    setError,
+    clearErrors,
   } = useForm<FornecedorFormData>({
     resolver: zodResolver(fornecedorSchema),
     defaultValues: initialData
@@ -46,6 +54,33 @@ export function FornecedorForm({ initialData, onSubmit, onCancel, isSubmitting }
         },
   });
 
+  const watchedCpfCnpj = watch("cpfCnpj");
+
+  const handleCpfCnpjBlur = async () => {
+    if (!watchedCpfCnpj || watchedCpfCnpj === initialData?.cpfCnpj) {
+      setCpfCnpjError(undefined);
+      clearErrors("cpfCnpj");
+      return;
+    }
+
+    setCheckingCpfCnpj(true);
+    try {
+      const exists = await api.fornecedores.checkCpfCnpj(watchedCpfCnpj);
+      if (exists) {
+        const message = "CPF/CNPJ já cadastrado";
+        setCpfCnpjError(message);
+        setError("cpfCnpj", { message });
+      } else {
+        setCpfCnpjError(undefined);
+        clearErrors("cpfCnpj");
+      }
+    } catch (error) {
+      console.error("Erro ao verificar CPF/CNPJ:", error);
+    } finally {
+      setCheckingCpfCnpj(false);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -55,7 +90,15 @@ export function FornecedorForm({ initialData, onSubmit, onCancel, isSubmitting }
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">CPF/CNPJ *</label>
-          <Input {...register("cpfCnpj")} error={errors.cpfCnpj?.message} />
+          <Input
+            {...register("cpfCnpj")}
+            error={errors.cpfCnpj?.message || cpfCnpjError}
+            onBlur={handleCpfCnpjBlur}
+            placeholder="Digite o CPF ou CNPJ"
+          />
+          {checkingCpfCnpj && (
+            <p className="text-xs text-gray-500 mt-1">Verificando...</p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Telefone *</label>
@@ -98,7 +141,7 @@ export function FornecedorForm({ initialData, onSubmit, onCancel, isSubmitting }
         <Button type="button" variant="secondary" onClick={onCancel} disabled={isSubmitting}>
           Cancelar
         </Button>
-        <Button type="submit" isLoading={isSubmitting}>
+        <Button type="submit" isLoading={isSubmitting} disabled={!!cpfCnpjError}>
           {initialData ? "Atualizar" : "Cadastrar"}
         </Button>
       </div>

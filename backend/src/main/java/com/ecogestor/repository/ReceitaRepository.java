@@ -24,6 +24,17 @@ public interface ReceitaRepository extends JpaRepository<Receita, UUID> {
             "ORDER BY r.dataRecebimento DESC")
     Page<Receita> search(@Param("status") StatusFinanceiro status, Pageable pageable);
 
+    @Query("SELECT r FROM Receita r WHERE " +
+            "(:status IS NULL OR r.status = :status) AND " +
+            "(:inicio IS NULL OR r.dataRecebimento >= :inicio) AND " +
+            "(:fim IS NULL OR r.dataRecebimento <= :fim) AND " +
+            "r.active = true " +
+            "ORDER BY r.dataRecebimento DESC")
+    Page<Receita> search(@Param("status") StatusFinanceiro status,
+                         @Param("inicio") LocalDate inicio,
+                         @Param("fim") LocalDate fim,
+                         Pageable pageable);
+
     @Query("SELECT COALESCE(SUM(r.valor), 0) FROM Receita r WHERE r.active = true")
     BigDecimal calcularTotalReceitas();
 

@@ -3,12 +3,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { despesaSchema, DespesaFormData } from "@/lib/schemas/despesaSchema";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { TipoDespesa, Cliente, Fornecedor } from "@/types";
+import { TipoDespesa, Cliente, Fornecedor, Despesa } from "@/types";
 
 interface DespesaFormProps {
   tiposDespesa: TipoDespesa[];
   clientes: Cliente[];
   fornecedores: Fornecedor[];
+  initialData?: Despesa;
   onSubmit: (data: DespesaFormData) => Promise<void>;
   onCancel: () => void;
   isSubmitting?: boolean;
@@ -18,6 +19,7 @@ export function DespesaForm({
   tiposDespesa,
   clientes,
   fornecedores,
+  initialData,
   onSubmit,
   onCancel,
   isSubmitting,
@@ -28,21 +30,36 @@ export function DespesaForm({
     formState: { errors },
   } = useForm<DespesaFormData>({
     resolver: zodResolver(despesaSchema),
-    defaultValues: {
-      tipoDespesaId: "",
-      clienteId: "",
-      fornecedorId: "",
-      descricao: "",
-      valor: 0,
-      dataVencimento: new Date().toISOString().split("T")[0],
-      dataPagamento: "",
-      status: "PENDENTE",
-      observacoes: "",
-    },
+    defaultValues: initialData
+      ? {
+          tipoDespesaId: initialData.tipoDespesaId || "",
+          entradaMaterialId: initialData.entradaMaterialId || "",
+          clienteId: initialData.clienteId || "",
+          fornecedorId: initialData.fornecedorId || "",
+          descricao: initialData.descricao,
+          valor: initialData.valor,
+          dataVencimento: initialData.dataVencimento,
+          dataPagamento: initialData.dataPagamento || "",
+          status: initialData.status as DespesaFormData["status"],
+          observacoes: initialData.observacoes || "",
+        }
+      : {
+          tipoDespesaId: "",
+          entradaMaterialId: "",
+          clienteId: "",
+          fornecedorId: "",
+          descricao: "",
+          valor: 0,
+          dataVencimento: new Date().toISOString().split("T")[0],
+          dataPagamento: "",
+          status: "PENDENTE",
+          observacoes: "",
+        },
   });
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <input type="hidden" {...register("entradaMaterialId")} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">

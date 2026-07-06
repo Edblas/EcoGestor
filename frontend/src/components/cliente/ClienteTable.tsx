@@ -8,9 +8,10 @@ interface ClienteTableProps {
   loading?: boolean;
   onEdit?: (cliente: Cliente) => void;
   onDelete?: (cliente: Cliente) => void;
+  onSelect?: (cliente: Cliente) => void;
 }
 
-export function ClienteTable({ data, loading, onEdit, onDelete }: ClienteTableProps) {
+export function ClienteTable({ data, loading, onEdit, onDelete, onSelect }: ClienteTableProps) {
   const columns = [
     { header: "Nome", accessor: "nome" as keyof Cliente },
     { header: "CPF/CNPJ", accessor: "cpfCnpj" as keyof Cliente },
@@ -54,6 +55,7 @@ export function ClienteTable({ data, loading, onEdit, onDelete }: ClienteTablePr
       data={data}
       loading={loading}
       emptyMessage="Nenhum cliente encontrado"
+      onRowClick={onSelect}
     />
   );
 }

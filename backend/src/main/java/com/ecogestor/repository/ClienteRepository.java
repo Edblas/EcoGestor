@@ -17,7 +17,7 @@ public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
     Optional<Cliente> findByCpfCnpj(String cpfCnpj);
 
     @Query("SELECT c FROM Cliente c WHERE " +
-           "(:search IS NULL OR LOWER(c.nome) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "(:search IS NULL OR :search = '' OR LOWER(c.nome) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(c.cpfCnpj) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(c.telefone) LIKE LOWER(CONCAT('%', :search, '%'))) " +
            "AND c.active = true")

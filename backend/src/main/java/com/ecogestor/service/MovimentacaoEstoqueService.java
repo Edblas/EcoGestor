@@ -72,6 +72,14 @@ public class MovimentacaoEstoqueService {
         return movimentacaoEstoqueMapper.toResponseDTO(movimentacao);
     }
 
+    @Transactional
+    public void inativar(UUID id) {
+        MovimentacaoEstoque movimentacao = movimentacaoEstoqueRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Movimentação não encontrada com id: " + id));
+        movimentacao.setActive(false);
+        movimentacaoEstoqueRepository.save(movimentacao);
+    }
+
     public java.math.BigDecimal calcularSaldoEstoque(UUID materialId) {
         return movimentacaoEstoqueRepository.calcularSaldoEstoque(materialId);
     }

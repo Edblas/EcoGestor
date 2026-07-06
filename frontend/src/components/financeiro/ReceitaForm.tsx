@@ -3,10 +3,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { receitaSchema, ReceitaFormData } from "@/lib/schemas/receitaSchema";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { Cliente } from "@/types";
+import { Cliente, Receita } from "@/types";
 
 interface ReceitaFormProps {
   clientes: Cliente[];
+  initialData?: Receita;
   onSubmit: (data: ReceitaFormData) => Promise<void>;
   onCancel: () => void;
   isSubmitting?: boolean;
@@ -14,6 +15,7 @@ interface ReceitaFormProps {
 
 export function ReceitaForm({
   clientes,
+  initialData,
   onSubmit,
   onCancel,
   isSubmitting,
@@ -24,19 +26,30 @@ export function ReceitaForm({
     formState: { errors },
   } = useForm<ReceitaFormData>({
     resolver: zodResolver(receitaSchema),
-    defaultValues: {
-      clienteId: "",
-      saidaMaterialId: "",
-      descricao: "",
-      valor: 0,
-      dataRecebimento: "",
-      status: "PENDENTE",
-      observacoes: "",
-    },
+    defaultValues: initialData
+      ? {
+          clienteId: initialData.clienteId || "",
+          saidaMaterialId: initialData.saidaMaterialId || "",
+          descricao: initialData.descricao,
+          valor: initialData.valor,
+          dataRecebimento: initialData.dataRecebimento || "",
+          status: initialData.status as ReceitaFormData["status"],
+          observacoes: initialData.observacoes || "",
+        }
+      : {
+          clienteId: "",
+          saidaMaterialId: "",
+          descricao: "",
+          valor: 0,
+          dataRecebimento: "",
+          status: "PENDENTE",
+          observacoes: "",
+        },
   });
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <input type="hidden" {...register("saidaMaterialId")} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">

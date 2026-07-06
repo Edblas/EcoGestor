@@ -1,0 +1,1 @@
+ALTER TABLE materiais ALTER COLUMN valor_padrao_kg DROP NOT NULL;

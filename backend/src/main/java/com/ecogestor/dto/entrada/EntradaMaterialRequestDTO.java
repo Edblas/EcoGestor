@@ -6,8 +6,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.ecogestor.entity.StatusEntradaMaterial;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -30,6 +32,12 @@ public class EntradaMaterialRequestDTO {
     @NotNull(message = "Valor por kg é obrigatório")
     @DecimalMin(value = "0.01", message = "Valor por kg deve ser maior que zero")
     private BigDecimal valorKg;
+
+    @NotNull(message = "Status é obrigatório")
+    private StatusEntradaMaterial status;
+
+    @NotNull(message = "Data da entrada é obrigatória")
+    private LocalDate dataEntrada;
 
     private String observacoes;
 }

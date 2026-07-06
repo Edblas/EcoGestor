@@ -14,7 +14,7 @@ import java.util.UUID;
 public interface MaterialRepository extends JpaRepository<Material, UUID> {
 
     @Query("SELECT m FROM Material m WHERE " +
-           "(:search IS NULL OR LOWER(m.nome) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "(:search IS NULL OR :search = '' OR LOWER(m.nome) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(m.categoria) LIKE LOWER(CONCAT('%', :search, '%'))) " +
            "AND m.active = true")
     Page<Material> search(@Param("search") String search, Pageable pageable);

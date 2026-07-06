@@ -1,6 +1,43 @@
-import { Cliente, Fornecedor, Material, Page, TipoMovimentacao, MovimentacaoEstoque, EntradaMaterial, SaidaMaterial, TipoDespesa, Despesa, Receita, StatusFinanceiro } from "@/types";
+import { Cliente, Fornecedor, Material, Page, TipoMovimentacao, MovimentacaoEstoque, EntradaMaterial, SaidaMaterial, TipoDespesa, Despesa, Receita, StatusEntradaMaterial, StatusFinanceiro, StatusSaidaMaterial } from "@/types";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8081/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+
+type EntradaMaterialRequest = {
+  clienteId?: string;
+  fornecedorId?: string;
+  materialId: string;
+  peso: number;
+  valorKg: number;
+  dataEntrada: string;
+  status: StatusEntradaMaterial;
+  observacoes?: string;
+};
+
+type SaidaMaterialRequest = {
+  clienteId: string;
+  materialId: string;
+  peso: number;
+  valorKg: number;
+  dataSaida: string;
+  status: StatusSaidaMaterial;
+  observacoes?: string;
+};
+
+type MaterialRequest = {
+  nome: string;
+  categoria: string;
+  unidadeMedida: string;
+  valorPadraoKg?: number | null;
+};
+
+type MovimentacaoEstoqueRequest = {
+  materialId: string;
+  tipo: TipoMovimentacao;
+  peso: number;
+  valor: number;
+  dataMovimentacao: string;
+  observacoes?: string;
+};
 
 async function apiRequest<T>(
   endpoint: string,
@@ -19,7 +56,23 @@ async function apiRequest<T>(
   });
 
   if (!response.ok) {
-    throw new Error(`Erro: ${response.status}`);
+    let errorMessage = `Erro: ${response.status}`;
+    const errorText = await response.text();
+
+    if (errorText) {
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData?.message) {
+          errorMessage = errorData.message;
+        } else {
+          errorMessage = errorText;
+        }
+      } catch {
+        errorMessage = errorText;
+      }
+    }
+
+    throw new Error(errorMessage);
   }
 
   if (response.status === 204) {
@@ -30,14 +83,49 @@ async function apiRequest<T>(
 }
 
 export const api = {
-  auth: {
-    login: (email: string, password: string): Promise<{ token: string }> =>
-      apiRequest("/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      }),
+  relatorios: {
+    downloadPDF: async (dataInicio: string, dataFim: string, materialId?: string, clienteId?: string, fornecedorId?: string): Promise<void> => {
+      const token = localStorage.getItem("token");
+      const params = new URLSearchParams();
+      params.append("dataInicio", dataInicio);
+      params.append("dataFim", dataFim);
+      if (materialId) params.append("materialId", materialId);
+      if (clienteId) params.append("clienteId", clienteId);
+      if (fornecedorId) params.append("fornecedorId", fornecedorId);
+
+      const response = await fetch(`${API_BASE_URL}/relatorios/pdf?${params.toString()}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error("Erro ao baixar relatório");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `relatorio_${dataInicio}_${dataFim}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    },
   },
   clientes: {
+    checkCpfCnpj: async (cpfCnpj: string): Promise<boolean> => {
+      const token = localStorage.getItem("token");
+      const params = new URLSearchParams();
+      params.append("cpfCnpj", cpfCnpj);
+      const response = await fetch(`${API_BASE_URL}/clientes/check-cpf-cnpj?${params.toString()}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error("Erro ao verificar CPF/CNPJ");
+      return response.json();
+    },
     search: (search?: string, page = 0, size = 10): Promise<Page<Cliente>> => {
       const params = new URLSearchParams();
       if (search) params.append("search", search);
@@ -62,6 +150,20 @@ export const api = {
       }),
   },
   fornecedores: {
+    checkCpfCnpj: async (cpfCnpj: string): Promise<boolean> => {
+      const token = localStorage.getItem("token");
+      const params = new URLSearchParams();
+      params.append("cpfCnpj", cpfCnpj);
+      const response = await fetch(`${API_BASE_URL}/fornecedores/check-cpf-cnpj?${params.toString()}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error("Erro ao verificar CPF/CNPJ");
+      return response.json();
+    },
     search: (search?: string, page = 0, size = 10): Promise<Page<Fornecedor>> => {
       const params = new URLSearchParams();
       if (search) params.append("search", search);
@@ -85,6 +187,13 @@ export const api = {
         method: "DELETE",
       }),
   },
+  auth: {
+    login: (email: string, password: string): Promise<{ token: string }> =>
+      apiRequest("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      }),
+  },
   materiais: {
     search: (search?: string, page = 0, size = 10): Promise<Page<Material>> => {
       const params = new URLSearchParams();
@@ -94,12 +203,12 @@ export const api = {
       return apiRequest(`/materiais?${params.toString()}`);
     },
     get: (id: string): Promise<Material> => apiRequest(`/materiais/${id}`),
-    create: (data: Omit<Material, "id" | "createdAt" | "updatedAt" | "active">): Promise<Material> =>
+    create: (data: MaterialRequest): Promise<Material> =>
       apiRequest("/materiais", {
         method: "POST",
         body: JSON.stringify(data),
       }),
-    update: (id: string, data: Omit<Material, "id" | "createdAt" | "updatedAt" | "active">): Promise<Material> =>
+    update: (id: string, data: MaterialRequest): Promise<Material> =>
       apiRequest(`/materiais/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),
@@ -119,7 +228,7 @@ export const api = {
       return apiRequest(`/estoque/movimentacoes?${params.toString()}`);
     },
     getMovimentacao: (id: string): Promise<MovimentacaoEstoque> => apiRequest(`/estoque/movimentacoes/${id}`),
-    registrarMovimentacao: (data: Omit<MovimentacaoEstoque, "id" | "createdAt" | "updatedAt" | "active">): Promise<MovimentacaoEstoque> =>
+    registrarMovimentacao: (data: MovimentacaoEstoqueRequest): Promise<MovimentacaoEstoque> =>
       apiRequest("/estoque/movimentacoes", {
         method: "POST",
         body: JSON.stringify(data),
@@ -139,10 +248,32 @@ export const api = {
       return apiRequest(`/entradas?${params.toString()}`);
     },
     get: (id: string): Promise<EntradaMaterial> => apiRequest(`/entradas/${id}`),
-    registrar: (data: Omit<EntradaMaterial, "id" | "createdAt" | "updatedAt" | "active">): Promise<EntradaMaterial> =>
+    registrar: (data: EntradaMaterialRequest): Promise<EntradaMaterial> =>
       apiRequest("/entradas", {
         method: "POST",
         body: JSON.stringify(data),
+      }),
+    update: (id: string, data: EntradaMaterialRequest): Promise<EntradaMaterial> =>
+      apiRequest(`/entradas/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string): Promise<void> =>
+      apiRequest(`/entradas/${id}`, {
+        method: "DELETE",
+      }),
+    getTotalValorFinalizadas: (inicio?: string, fim?: string): Promise<number> => {
+      const params = new URLSearchParams();
+      if (inicio && fim) {
+        params.append("inicio", inicio);
+        params.append("fim", fim);
+      }
+      const query = params.toString();
+      return apiRequest(`/entradas/totais/valor-finalizadas${query ? `?${query}` : ""}`);
+    },
+    finalizar: (id: string): Promise<EntradaMaterial> =>
+      apiRequest(`/entradas/${id}/finalizar`, {
+        method: "PATCH",
       }),
   },
   saidas: {
@@ -155,10 +286,32 @@ export const api = {
       return apiRequest(`/saidas?${params.toString()}`);
     },
     get: (id: string): Promise<SaidaMaterial> => apiRequest(`/saidas/${id}`),
-    registrar: (data: Omit<SaidaMaterial, "id" | "createdAt" | "updatedAt" | "active">): Promise<SaidaMaterial> =>
+    registrar: (data: SaidaMaterialRequest): Promise<SaidaMaterial> =>
       apiRequest("/saidas", {
         method: "POST",
         body: JSON.stringify(data),
+      }),
+    update: (id: string, data: SaidaMaterialRequest): Promise<SaidaMaterial> =>
+      apiRequest(`/saidas/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string): Promise<void> =>
+      apiRequest(`/saidas/${id}`, {
+        method: "DELETE",
+      }),
+    getTotalValorFinalizadas: (inicio?: string, fim?: string): Promise<number> => {
+      const params = new URLSearchParams();
+      if (inicio && fim) {
+        params.append("inicio", inicio);
+        params.append("fim", fim);
+      }
+      const query = params.toString();
+      return apiRequest(`/saidas/totais/valor-finalizadas${query ? `?${query}` : ""}`);
+    },
+    finalizar: (id: string): Promise<SaidaMaterial> =>
+      apiRequest(`/saidas/${id}/finalizar`, {
+        method: "PATCH",
       }),
   },
   tiposDespesa: {
@@ -180,9 +333,11 @@ export const api = {
       }),
   },
   despesas: {
-    listar: (status?: StatusFinanceiro, page = 0, size = 10): Promise<Page<Despesa>> => {
+    listar: (status?: StatusFinanceiro, page = 0, size = 10, inicio?: string, fim?: string): Promise<Page<Despesa>> => {
       const params = new URLSearchParams();
       if (status) params.append("status", status);
+      if (inicio) params.append("inicio", inicio);
+      if (fim) params.append("fim", fim);
       params.append("page", page.toString());
       params.append("size", size.toString());
       return apiRequest(`/despesas?${params.toString()}`);
@@ -193,18 +348,33 @@ export const api = {
         method: "POST",
         body: JSON.stringify(data),
       }),
+    update: (id: string, data: Omit<Despesa, "id" | "createdAt" | "active">): Promise<Despesa> =>
+      apiRequest(`/despesas/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
     delete: (id: string): Promise<void> =>
       apiRequest(`/despesas/${id}`, {
         method: "DELETE",
       }),
     getTotalDespesas: (): Promise<number> => apiRequest("/despesas/total"),
-    getTotalPago: (): Promise<number> => apiRequest("/despesas/total-pago"),
+    getTotalPago: (inicio?: string, fim?: string): Promise<number> => {
+      if (inicio && fim) {
+        const params = new URLSearchParams();
+        params.append("inicio", inicio);
+        params.append("fim", fim);
+        return apiRequest(`/despesas/total-pago-por-periodo?${params.toString()}`);
+      }
+      return apiRequest("/despesas/total-pago");
+    },
     getTotalPendente: (): Promise<number> => apiRequest("/despesas/total-pendente"),
   },
   receitas: {
-    listar: (status?: StatusFinanceiro, page = 0, size = 10): Promise<Page<Receita>> => {
+    listar: (status?: StatusFinanceiro, page = 0, size = 10, inicio?: string, fim?: string): Promise<Page<Receita>> => {
       const params = new URLSearchParams();
       if (status) params.append("status", status);
+      if (inicio) params.append("inicio", inicio);
+      if (fim) params.append("fim", fim);
       params.append("page", page.toString());
       params.append("size", size.toString());
       return apiRequest(`/receitas?${params.toString()}`);
@@ -215,12 +385,25 @@ export const api = {
         method: "POST",
         body: JSON.stringify(data),
       }),
+    update: (id: string, data: Omit<Receita, "id" | "createdAt" | "active">): Promise<Receita> =>
+      apiRequest(`/receitas/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
     delete: (id: string): Promise<void> =>
       apiRequest(`/receitas/${id}`, {
         method: "DELETE",
       }),
     getTotalReceitas: (): Promise<number> => apiRequest("/receitas/total"),
-    getTotalRecebido: (): Promise<number> => apiRequest("/receitas/total-recebido"),
+    getTotalRecebido: (inicio?: string, fim?: string): Promise<number> => {
+      if (inicio && fim) {
+        const params = new URLSearchParams();
+        params.append("inicio", inicio);
+        params.append("fim", fim);
+        return apiRequest(`/receitas/total-recebido-por-periodo?${params.toString()}`);
+      }
+      return apiRequest("/receitas/total-recebido");
+    },
     getTotalPendente: (): Promise<number> => apiRequest("/receitas/total-pendente"),
   },
 };
